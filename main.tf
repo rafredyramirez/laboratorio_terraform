@@ -1,27 +1,50 @@
+####### tfstate #######
 terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
+  backend "s3" {
+    bucket  = "terraform-laboratorio-udm"
+    key     = "terraform-laboratorio/terraform.tfstate"
+    region  = "us-east-1"
   }
 }
 
-provider "aws" {
-    region = "us-east-1"
+####### Modulo Dev #######
+module "nginx_server_dev"{
+    source = "./nginx_server_module"
+    
+    ami_id          = "ami-0440d3b780d96b29d"
+    instance_type   = "t3.micro"
+    server_name     = "nginx-server-dev"
+    environment     = "dev"
 }
 
-resource "aws_instance" "nginx-server" {
-    count         = 2
-    ami           = "ami-0440d3b780d96b29d"
-    instance_type = "t3.micro"
+####### Modulo QA #######
+module "nginx_server_qa"{
+    source = "./nginx_server_module"
+    
+    ami_id          = "ami-0440d3b780d96b29d"
+    instance_type   = "t2.micro"
+    server_name     = "nginx-server-qa"
+    environment     = "qa"
+}
 
-    tags = {
-        Name        = "nginx-server"
-        Environment = "Dev"
-        Owner       = "Fredy Ramírez"
-        Team        = "DevOps"
-        Project     = "E-commerce"
-        Origin      = "Terraform"
-    }
+#######  output Dev ####### 
+output "nginx_dev_ip" {
+  description = "Dirección IP pública de la instancia EC2"
+  value       = module.nginx_server_dev.server_public_ip
+}
+
+output "ngnix_dev_dns" {
+  description = "DNS público de la instancia EC2"
+  value       = module.nginx_server_dev.server_public_dns
+}
+
+#######  output QA ####### 
+output "nginx_qa_ip" {
+  description = "Dirección IP pública de la instancia EC2"
+  value       = module.nginx_server_qa.server_public_ip
+}
+
+output "ngnix_qa_dns" {
+  description = "DNS público de la instancia EC2"
+  value       = module.nginx_server_qa.server_public_dns
 }
